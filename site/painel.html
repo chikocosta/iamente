@@ -1,0 +1,769 @@
+{% extends "base.html" %}
+
+{% block title %}Painel - AtivaMente{% endblock %}
+
+{% block content %}
+<div class="painel-page">
+  <div class="painel-header">
+    <h1>🏠 Painel do Usuário</h1>
+    <p>Bem-vindo(a), {{ usuario.nome }}!</p>
+  </div>
+
+  <div class="painel-grid">
+    <!-- Informações do Usuário -->
+    <div class="card user-info">
+      <h3>👤 Suas Informações</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Nome:</span>
+          <span class="info-value">{{ usuario.nome }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">E-mail:</span>
+          <span class="info-value">{{ usuario.email }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Plano:</span>
+          <span class="info-value plan-{{ usuario.plano }}">
+            {% if usuario.plano == 'free' %}🆓 Gratuito{% endif %}
+            {% if usuario.plano == 'premium' %}⭐ Premium{% endif %}
+            {% if usuario.plano == 'escola' %}🏫 Escola{% endif %}
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Profissão:</span>
+          <span class="info-value">{{ usuario.profissao or 'Não informado' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Membro desde:</span>
+          <span class="info-value">{{ usuario.data_cadastro[:10] if usuario.data_cadastro else 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Último login:</span>
+          <span class="info-value">{{ usuario.ultimo_login[:19] if usuario.ultimo_login else 'Primeiro acesso' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Limites de Geração -->
+    <div class="card limits-info">
+      <h3>📊 Limites de Geração</h3>
+      <div class="limits-content">
+        {% if limite_info.pode_gerar %}
+          <div class="limit-status status-ok">
+            <span class="status-icon">✅</span>
+            <span>Você pode gerar conteúdo</span>
+          </div>
+        {% else %}
+          <div class="limit-status status-warning">
+            <span class="status-icon">⚠️</span>
+            <span>Limite diário atingido</span>
+          </div>
+        {% endif %}
+        
+        <div class="limit-details">
+          <div class="limit-item">
+            <span class="limit-label">Gerações hoje:</span>
+            <span class="limit-value">{{ limite_info.geracoes_hoje or 0 }}</span>
+          </div>
+          
+          {% if limite_info.limite_diario != -1 %}
+          <div class="limit-item">
+            <span class="limit-label">Limite diário:</span>
+            <span class="limit-value">{{ limite_info.limite_diario }}</span>
+          </div>
+          <div class="limit-item">
+            <span class="limit-label">Restantes:</span>
+            <span class="limit-value">{{ limite_info.geracoes_restantes or 0 }}</span>
+          </div>
+          {% else %}
+          <div class="limit-item">
+            <span class="limit-label">Limite diário:</span>
+            <span class="limit-value unlimited">Ilimitado</span>
+          </div>
+          {% endif %}
+          
+          <div class="limit-item">
+            <span class="limit-label">Próximo reset:</span>
+            <span class="limit-value">{{ limite_info.proximo_reset or 'Meia-noite' }}</span>
+          </div>
+        </div>
+
+        {% if limite_info.plano == 'free' %}
+        <div class="upgrade-suggestion">
+          <p>💡 <strong>Dica:</strong> Upgrade para Premium e tenha 10 gerações por dia!</p>
+          <button class="btn btn-upgrade" onclick="mostrarPlanos()">
+            <span class="btn-icon">⭐</span>
+            Ver Planos
+          </button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="card stats-info">
+      <h3>📈 Suas Estatísticas</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number">{{ estatisticas.total_geracoes or 0 }}</div>
+          <div class="stat-label">Total de Gerações</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">{{ estatisticas.geracoes_mes or 0 }}</div>
+          <div class="stat-label">Este Mês</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">{{ estatisticas.tipos_geracao|length or 0 }}</div>
+          <div class="stat-label">Tipos Diferentes</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">{{ ((estatisticas.total_geracoes or 0) / 30) | round(1) }}</div>
+          <div class="stat-label">Média Diária</div>
+        </div>
+      </div>
+
+      {% if estatisticas.tipos_geracao %}
+      <div class="types-breakdown">
+        <h4>📋 Tipos de Conteúdo Gerado</h4>
+        <div class="types-list">
+          {% for tipo, quantidade in estatisticas.tipos_geracao.items() %}
+          <div class="type-item">
+            <span class="type-name">
+              {% if tipo == 'desenho' %}🎨 Desenhos{% endif %}
+              {% if tipo == 'atividade' %}📝 Atividades{% endif %}
+              {% if tipo == 'jogo' %}🎮 Jogos{% endif %}
+              {% if tipo == 'instrucoes_desenho' %}📄 Instruções{% endif %}
+              {% if tipo not in ['desenho', 'atividade', 'jogo', 'instrucoes_desenho'] %}{{ tipo.title() }}{% endif %}
+            </span>
+            <span class="type-count">{{ quantidade }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="card quick-actions">
+      <h3>⚡ Ações Rápidas</h3>
+      <div class="actions-grid">
+        <a href="/gerar_desenho" class="action-btn">
+          <div class="action-icon">🎨</div>
+          <div class="action-text">
+            <strong>Gerar Desenho</strong>
+            <small>Crie desenhos para colorir</small>
+          </div>
+        </a>
+        
+        <a href="/gerar_atividade" class="action-btn">
+          <div class="action-icon">📝</div>
+          <div class="action-text">
+            <strong>Criar Atividade</strong>
+            <small>Atividades personalizadas</small>
+          </div>
+        </a>
+        
+        <a href="/gerar_jogo" class="action-btn">
+          <div class="action-icon">🎮</div>
+          <div class="action-text">
+            <strong>Criar Jogo</strong>
+            <small>Jogos educativos</small>
+          </div>
+        </a>
+        
+        <a href="/configurar_api" class="action-btn">
+          <div class="action-icon">⚙️</div>
+          <div class="action-text">
+            <strong>Configurar API</strong>
+            <small>Stable Diffusion</small>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Histórico Recente -->
+    {% if estatisticas.historico_recente %}
+    <div class="card recent-history">
+      <h3>🕒 Histórico Recente</h3>
+      <div class="history-list">
+        {% for item in estatisticas.historico_recente %}
+        <div class="history-item">
+          <div class="history-icon">
+            {% if item.tipo == 'desenho' %}🎨{% endif %}
+            {% if item.tipo == 'atividade' %}📝{% endif %}
+            {% if item.tipo == 'jogo' %}🎮{% endif %}
+            {% if item.tipo == 'instrucoes_desenho' %}📄{% endif %}
+          </div>
+          <div class="history-content">
+            <div class="history-title">{{ item.detalhes.tema or item.detalhes.pedido or item.tipo.title() }}</div>
+            <div class="history-date">{{ item.timestamp[:19] if item.timestamp else 'Data não disponível' }}</div>
+          </div>
+          <div class="history-status">
+            {% if item.sucesso %}✅{% else %}❌{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Modal de Planos -->
+<div id="planos-modal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>📋 Planos Disponíveis</h3>
+      <button class="modal-close" onclick="fecharPlanos()">&times;</button>
+    </div>
+    
+    <div class="plans-grid">
+      <div class="plan-card plan-current">
+        <div class="plan-header">
+          <h4>🆓 Gratuito</h4>
+          <div class="plan-price">R$ 0<span>/mês</span></div>
+        </div>
+        <div class="plan-features">
+          <div class="feature">✅ 1 geração por dia</div>
+          <div class="feature">✅ Todos os tipos de atividade</div>
+          <div class="feature">✅ Suporte básico</div>
+          <div class="feature">✅ Acesso a exemplos</div>
+        </div>
+        <div class="plan-badge">Plano Atual</div>
+      </div>
+
+      <div class="plan-card plan-premium">
+        <div class="plan-header">
+          <h4>⭐ Premium</h4>
+          <div class="plan-price">R$ 19<span>/mês</span></div>
+        </div>
+        <div class="plan-features">
+          <div class="feature">✅ Gerações ilimitadas</div>
+          <div class="feature">✅ Prioridade na geração</div>
+          <div class="feature">✅ Suporte prioritário</div>
+          <div class="feature">✅ Histórico completo</div>
+          <div class="feature">✅ Exportação em PDF</div>
+        </div>
+        <button class="plan-btn">Fazer Upgrade</button>
+      </div>
+
+      <div class="plan-card plan-escola">
+        <div class="plan-header">
+          <h4>🏫 Escola</h4>
+          <div class="plan-price">R$ 99<span>/mês</span></div>
+        </div>
+        <div class="plan-features">
+          <div class="feature">✅ Até 50 professores</div>
+          <div class="feature">✅ Gerações ilimitadas</div>
+          <div class="feature">✅ Painel administrativo</div>
+          <div class="feature">✅ Relatórios de uso</div>
+          <div class="feature">✅ Suporte dedicado</div>
+        </div>
+        <button class="plan-btn">Contatar Vendas</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.painel-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.painel-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 20px;
+}
+
+.painel-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.painel-header p {
+  font-size: 1.2rem;
+  color: #374151;
+}
+
+.painel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.card {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  border: 3px solid transparent;
+}
+
+.card h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+}
+
+.user-info {
+  border-color: #6366f1;
+}
+
+.limits-info {
+  border-color: #10b981;
+}
+
+.stats-info {
+  border-color: #f59e0b;
+}
+
+.quick-actions {
+  border-color: #ef4444;
+}
+
+.recent-history {
+  border-color: #8b5cf6;
+  grid-column: 1 / -1;
+}
+
+.info-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.info-value {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.plan-free {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.plan-premium {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+.plan-escola {
+  color: #6366f1;
+  font-weight: 700;
+}
+
+.limit-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.status-ok {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.limit-details {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.limit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.limit-label {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.limit-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.unlimited {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.upgrade-suggestion {
+  background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+  padding: 1rem;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.upgrade-suggestion p {
+  margin-bottom: 1rem;
+  color: #92400e;
+}
+
+.btn-upgrade {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-upgrade:hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  transform: translateY(-2px);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.types-breakdown h4 {
+  color: #374151;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.types-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.type-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.type-name {
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.type-count {
+  background: #6366f1;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.actions-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.action-btn:hover {
+  background: #e0e7ff;
+  border-color: #6366f1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+}
+
+.action-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.action-text strong {
+  display: block;
+  color: #1f2937;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.action-text small {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.history-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.history-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.history-content {
+  flex: 1;
+}
+
+.history-title {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.history-date {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.history-status {
+  font-size: 1.2rem;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  max-width: 900px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.plan-card {
+  background: #f8fafc;
+  border-radius: 15px;
+  padding: 1.5rem;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.plan-current {
+  border-color: #10b981;
+}
+
+.plan-premium {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.plan-escola {
+  border-color: #6366f1;
+}
+
+.plan-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.plan-header h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.plan-price {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.plan-price span {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.plan-features {
+  margin-bottom: 1.5rem;
+}
+
+.feature {
+  color: #374151;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.plan-badge {
+  background: #10b981;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.plan-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.plan-btn:hover {
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .painel-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .plans-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script>
+function mostrarPlanos() {
+  document.getElementById('planos-modal').style.display = 'flex';
+}
+
+function fecharPlanos() {
+  document.getElementById('planos-modal').style.display = 'none';
+}
+
+// Fecha modal ao clicar fora
+document.getElementById('planos-modal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    fecharPlanos();
+  }
+});
+
+// Atualiza informações em tempo real
+function atualizarLimites() {
+  fetch('/api/limite_usuario')
+    .then(response => response.json())
+    .then(data => {
+      // Atualiza informações na página se necessário
+      console.log('Limites atualizados:', data);
+    })
+    .catch(error => console.error('Erro ao atualizar limites:', error));
+}
+
+// Atualiza a cada 5 minutos
+setInterval(atualizarLimites, 5 * 60 * 1000);
+</script>
+{% endblock %}
+

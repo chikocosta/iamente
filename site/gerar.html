@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Gerar Conteúdo - AtivaMente{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>🎨 O que você deseja gerar?</h1>
+  <p>Escolha abaixo o tipo de conteúdo educativo que deseja criar:</p>
+</div>
+
+<div class="generator-grid">
+  <a href="/gerar_atividade" class="generator-card card-atividade">
+    <div class="card-icon">📄</div>
+    <h3>Atividade Educativa</h3>
+    <p>Crie atividades personalizadas para qualquer tema</p>
+  </a>
+  
+  <a href="/gerar_adaptada" class="generator-card card-adaptada">
+    <div class="card-icon">♿</div>
+    <h3>Atividade Adaptada</h3>
+    <p>Atividades para crianças com necessidades especiais</p>
+  </a>
+  
+  <a href="/gerar_jogo" class="generator-card card-jogo">
+    <div class="card-icon">🎮</div>
+    <h3>Jogo Educativo</h3>
+    <p>Jogos divertidos para aprender brincando</p>
+  </a>
+  
+  <a href="/gerar_desenho" class="generator-card card-desenho">
+    <div class="card-icon">🖼️</div>
+    <h3>Desenho para Colorir</h3>
+    <p>Ilustrações educativas para colorir</p>
+  </a>
+  
+  <a href="/gerar_livre" class="generator-card card-livre">
+    <div class="card-icon">📚</div>
+    <h3>Conteúdo Livre</h3>
+    <p>Crie qualquer tipo de conteúdo educativo</p>
+  </a>
+  
+  <a href="/gerar_instrucoes" class="generator-card card-instrucoes">
+    <div class="card-icon">📋</div>
+    <h3>Instruções</h3>
+    <p>Guias passo a passo para atividades</p>
+  </a>
+</div>
+
+<style>
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '✨🌟⭐🎈🎉';
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  font-size: 1.5rem;
+  opacity: 0.3;
+  animation: sparkle 3s infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+  50% { transform: translateY(-10px) rotate(180deg); opacity: 0.6; }
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.page-header p {
+  font-size: 1.2rem;
+  color: #374151;
+  position: relative;
+  z-index: 2;
+}
+
+.generator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.generator-card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  border: 4px solid transparent;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.generator-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 20px 20px 0 0;
+}
+
+.card-atividade::before {
+  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+}
+
+.card-atividade:hover {
+  border-color: #ff6b6b;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(255, 107, 107, 0.25);
+}
+
+.card-adaptada::before {
+  background: linear-gradient(90deg, #4ecdc4, #7dd3d8);
+}
+
+.card-adaptada:hover {
+  border-color: #4ecdc4;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(78, 205, 196, 0.25);
+}
+
+.card-jogo::before {
+  background: linear-gradient(90deg, #45b7d1, #73c5da);
+}
+
+.card-jogo:hover {
+  border-color: #45b7d1;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(69, 183, 209, 0.25);
+}
+
+.card-desenho::before {
+  background: linear-gradient(90deg, #96ceb4, #b8dcc6);
+}
+
+.card-desenho:hover {
+  border-color: #96ceb4;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(150, 206, 180, 0.25);
+}
+
+.card-livre::before {
+  background: linear-gradient(90deg, #feca57, #fed976);
+}
+
+.card-livre:hover {
+  border-color: #feca57;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(254, 202, 87, 0.25);
+}
+
+.card-instrucoes::before {
+  background: linear-gradient(90deg, #a8e6cf, #c3f0ca);
+}
+
+.card-instrucoes:hover {
+  border-color: #a8e6cf;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(168, 230, 207, 0.25);
+}
+
+.card-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+
+.generator-card h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.generator-card p {
+  color: #6b7280;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 2rem;
+  }
+  
+  .page-header p {
+    font-size: 1rem;
+  }
+  
+  .generator-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .generator-card {
+    padding: 2rem;
+  }
+  
+  .card-icon {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 1.5rem;
+  }
+  
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .generator-card {
+    padding: 1.5rem;
+  }
+  
+  .card-icon {
+    font-size: 2.5rem;
+  }
+  
+  .generator-card h3 {
+    font-size: 1.2rem;
+  }
+}
+</style>
+{% endblock %}
+
